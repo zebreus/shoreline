@@ -54,11 +54,19 @@ static inline void ring_inc_read(struct ring* ring) {
 }
 
 // Number of contiguous free bytes after ring->write_ptr
+// TODO: If I can get ptr_write to be bigger than size + data, I should be able to overflow
+// TODO: If I can get ptr_read to be bigger than size + data, it should also overflow
 static inline size_t ring_free_space_contig(struct ring* ring) {
 	if(ring->ptr_read > ring->ptr_write) {
 		return ring->ptr_read - ring->ptr_write - 1;
 	}
-	return ring->size - (ring->ptr_write - ring->data) - (ring->ptr_read == ring->data ? 1 : 0);
+	return 
+	// Size of the ring buffer
+	ring->size 
+	// Max size - 1
+	- (ring->ptr_write - ring->data)
+	// 1 or 0
+	- (ring->ptr_read == ring->data ? 1 : 0);
 }
 
 static inline void ring_advance_read(struct ring* ring, off_t offset) {
